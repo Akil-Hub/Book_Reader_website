@@ -1,25 +1,33 @@
 import { useBookContext } from "@/contexts/BookContext";
+import { addToReadLists, addToWishLists } from "@/store/bookSlice";
 
 import React from "react";
 import { RiEqualLine } from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 const BookDetails = () => {
-  const {
-    books,
-    getSingleBook,
-    readListBooks,
-    setReadListBooks,
-    wishListBooks,
-    setWishListBooks,
-  } = useBookContext();
+  // now the states are commng from redux store
+
+  const dispatch = useDispatch();
   const { bookId } = useParams();
-  const singleBook = getSingleBook(bookId);
 
-  if(!singleBook) return <p>Book not Found</p>
+  const books = useSelector((state) => state.books.books);
+  const readListBooks = useSelector((state) => state.books.readListBooks);
 
+  const wishListBooks = useSelector((state) => state.books.wishListBooks);
 
+  // Gaurd if books not loaded yet
+  if(!books.length) return <p>Loading...</p>
 
+  const singleBook = books.find((b) => b.bookId === Number(bookId));
+
+  if (!singleBook) return <p>Book not Found</p>;
+
+  // initial books marked logic
+
+  const isBookMarked = readListBooks.some((book) => book.bookId == bookId);
+  const isBookWishListed = wishListBooks.some((book) => book.bookId == bookId);
 
   const handleReadBooks = (singleBook) => {
     const isBookExist = readListBooks.find(
@@ -36,7 +44,8 @@ const BookDetails = () => {
       alert("Book is Already in Wishlist");
       return;
     } else {
-      setReadListBooks([...readListBooks, singleBook]);
+      dispatch(addToReadLists(singleBook));
+      alert("book is added to read list");
     }
   };
 
@@ -52,14 +61,10 @@ const BookDetails = () => {
     } else if (isBookExistInReadList) {
       alert("Book is Already exist in Read List");
     } else {
-      setWishListBooks([...wishListBooks, singleBook]);
+      dispatch(addToWishLists(singleBook));
+      alert("book is added to Wishlist");
     }
   };
-
-  
-  const isBookMarked = readListBooks.some((book) => book.bookId == bookId);
-const isBookWishListed = wishListBooks.some((book) => book.bookId == bookId);
-
 
   return (
     <div className="min-h-screen bg-base-200 p-4 flex justify-center items-start">
@@ -126,7 +131,7 @@ const isBookWishListed = wishListBooks.some((book) => book.bookId == bookId);
               onClick={() => handleWishlistBook(singleBook)}
               className="btn  btn-primary btn-sm disabled:bg-primary/70 disabled:text-black/60"
             >
-             {isBookWishListed ? 'Added in Wishlist':' Mark as Wishlist '}
+              {isBookWishListed ? "Added in Wishlist" : " Mark as Wishlist "}
             </button>
           </div>
         </div>
